@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사람찾기</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0d0f;--surface:#16161a;--card:#1e1e24;--border:#2a2a35;--accent:#c8f135;--accent2:#f13595;--text:#f0f0f5;--muted:#888;--tag:#252530}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 16px 60px}
+.wrapper{width:100%;max-width:480px}
+header{padding:40px 0 24px;text-align:center}
+.logo-tag{display:inline-block;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);background:rgba(200,241,53,.1);border:1px solid rgba(200,241,53,.25);padding:5px 14px;border-radius:20px;margin-bottom:18px}
+h1{font-family:'Black Han Sans',sans-serif;font-size:clamp(26px,7vw,38px);line-height:1.2}
+h1 span{color:var(--accent)}
+.sub{margin-top:10px;color:var(--muted);font-size:13px;line-height:1.7}
+.tabs{display:flex;gap:6px;margin-top:28px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:5px}
+.tab{flex:1;padding:11px 0;border:none;background:transparent;color:var(--muted);border-radius:10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:500;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px}
+.tab.active{background:var(--card);color:var(--accent);border:1px solid rgba(200,241,53,.2)}
+.search-box{margin-top:14px;position:relative}
+.search-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:17px 58px 17px 20px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:16px;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--accent)}
+.search-btn{position:absolute;right:9px;top:50%;transform:translateY(-50%);background:var(--accent);border:none;border-radius:10px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.hints{display:none;flex-wrap:wrap;gap:7px;margin-top:11px}
+.hints.on{display:flex}
+.chip{background:var(--tag);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer}
+.chip.sel{background:rgba(200,241,53,.1);border-color:var(--accent);color:var(--accent)}
+.result-area{margin-top:24px}
+.result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.result-count{font-size:12px;color:var(--muted)}
+.result-count strong{color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:10px;display:flex;gap:14px;align-items:center;cursor:pointer;transition:border-color .2s,transform .15s;animation:up .3s ease both}
+.card:active{transform:scale(.98)}
+.card:hover{border-color:rgba(200,241,53,.3)}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.av{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Black Han Sans',sans-serif;font-size:20px;color:#0d0d0f;flex-shrink:0}
+.av0{background:linear-gradient(135deg,#c8f135,#7dd900)}
+.av1{background:linear-gradient(135deg,#f13595,#9b1aff);color:#fff}
+.av2{background:linear-gradient(135deg,#35c8f1,#1a5fff);color:#fff}
+.av3{background:linear-gradient(135deg,#f1a435,#f13535);color:#fff}
+.pname{font-size:15px;font-weight:700;margin-bottom:5px}
+.pname em{color:var(--accent);font-style:normal}
+.pmeta{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px}
+.mc{background:var(--tag);border-radius:6px;padding:2px 7px;font-size:11px}
+.conf{text-align:right;flex-shrink:0}
+.cn{font-size:13px;font-weight:700;color:var(--accent)}
+.cb{width:44px;height:3px;background:var(--border);border-radius:2px;margin-top:5px;overflow:hidden}
+.cf{height:100%;border-radius:2px;background:var(--accent);transition:width .6s}
+.spinner{display:flex;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--muted);font-size:13px}
+.spin{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.tips-box{margin-top:28px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px}
+.tips-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent2);margin-bottom:14px}
+.tip{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start}
+.tip:last-child{margin-bottom:0}
+.ticon{width:28px;height:28px;border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ttext{font-size:13px;color:var(--muted);line-height:1.6}
+.ttext strong{color:var(--text)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:100;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:20px 20px 40px;animation:mu .3s ease}
+@keyframes mu{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mhandle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
+.mav{width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:'Black Han Sans',sans-serif;font-size:24px;color:#0d0d0f;margin-bottom:14px}
+.mname{font-family:'Black Han Sans',sans-serif;font-size:22px;margin-bottom:4px}
+.mdesc{font-size:13px;color:var(--muted);margin-bottom:20px}
+.mlinks{display:flex;flex-direction:column;gap:9px;margin-bottom:16px}
+.mlink{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-decoration:none;color:var(--text);transition:border-color .2s;font-size:14px}
+.mlink:active{border-color:var(--accent);color:var(--accent)}
+.mclose{width:100%;background:transparent;border:1px solid var(--border);border-radius:12px;padding:14px;color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-size:14px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrapper">
+<header>
+<div class="logo-tag">👤 사람 찾기</div>
+<h1>연락이 끊긴<br><span>그 사람</span>을 찾아요</h1>
+<p class="sub">이름, 전화번호, SNS 아이디로 검색하고<br>찾는 방법을 안내받으세요</p>
+</header>
+<div class="tabs">
+<button class="tab active" data-type="name" onclick="switchTab(this)">👤 이름</button>
+<button class="tab" data-type="phone" onclick="switchTab(this)">📱 전화번호</button>
+<button class="tab" data-type="sns" onclick="switchTab(this)">🔗 SNS</button>
+</div>
+<div class="search-box">
+<input class="search-input" id="si" type="text" placeholder="이름을 입력하세요" autocomplete="off" onkeydown="if(event.key==='Enter'){doSearch();this.blur()}">
+<button class="search-btn" onclick="doSearch()">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0d0d0f" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+</button>
+</div>
+<div class="hints" id="hints">
+<div class="chip" onclick="selP(this)">📸 인스타그램</div>
+<div class="chip" onclick="selP(this)">🐦 X(트위터)</div>
+<div class="chip" onclick="selP(this)">💬 카카오톡</div>
+<div class="chip" onclick="selP(this)">💼 링크드인</div>
+<div class="chip" onclick="selP(this)">🎵 틱톡</div>
+</div>
+<div class="result-area" id="ra"></div>
+<div class="tips-box">
+<div class="tips-title">💡 효과적인 찾기 방법</div>
+<div class="tip"><div class="ticon">🔍</div><div class="ttext"><strong>이름 + 지역/학교</strong> 조합으로 검색하면 정확도가 높아져요</div></div>
+<div class="tip"><div class="ticon">📱</div><div class="ttext"><strong>카카오톡 친구찾기</strong> — 전화번호나 카카오ID로 직접 검색 가능</div></div>
+<div class="tip"><div class="ticon">📸</div><div class="ttext"><strong>인스타그램 해시태그</strong> — 학교명, 지역명, 졸업연도 태그 검색</div></div>
+<div class="tip"><div class="ticon">💼</div><div class="ttext"><strong>링크드인</strong> — 직장인이라면 이름+회사명으로 찾기 쉬워요</div></div>
+<div class="tip"><div class="ticon">🏫</div><div class="ttext"><strong>동창 커뮤니티</strong> — 에브리타임, 각 학교 카페에 게시 검토</div></div>
+</div>
+</div>
+<div class="modal-overlay" id="mo" onclick="if(event.target===this)closeModal()">
+<div class="modal">
+<div class="mhandle"></div>
+<div id="mc"></div>
+<button class="mclose" onclick="closeModal()">닫기</button>
+</div>
+</div>
+<script>
+let ct='name',sr=[],sq='';
+const PH={name:'이름을 입력하세요 (예: 김민준)',phone:'전화번호 입력 (예: 010-1234-5678)',sns:'SNS 아이디 입력 (예: @minj_kim)'};
+const DD={name:[{name:'김민준',info:'서울 출신 · 1995년생',tags:['인스타 @minjun_k','카카오: minjun95'],c:87},{name:'김민준',info:'부산 출신 · 1993년생',tags:['트위터 @minj_busan','링크드인'],c:63},{name:'김민준호',info:'대전 출신 · 직장인',tags:['페이스북'],c:41}],phone:[{name:'번호 등록자',info:'카카오톡 프로필 확인됨',tags:['최근 활동 있음'],c:92}],sns:[{name:'SNS 계정 발견',info:'아이디 일치 계정',tags:['팔로워 230명'],c:95},{name:'유사 계정',info:'비공개 계정',tags:['팔로워 44명'],c:58}]};
+const ML=[{icon:'💬',label:'카카오톡 친구 추가',url:'https://open.kakao.com'},{icon:'📸',label:'인스타그램에서 검색',url:'https://instagram.com'},{icon:'💼',label:'링크드인에서 검색',url:'https://linkedin.com'},{icon:'🐦',label:'X(트위터)에서 검색',url:'https://x.com'},{icon:'🔍',label:'구글에서 검색',url:'https://google.com/search?q='}];
+function switchTab(el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');ct=el.dataset.type;document.getElementById('si').value='';document.getElementById('si').placeholder=PH[ct];document.getElementById('ra').innerHTML='';document.getElementById('hints').classList.toggle('on',ct==='sns')}
+function selP(el){document.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel')}
+function hi(t,q){if(!q)return t;const i=t.toLowerCase().indexOf(q.toLowerCase());if(i===-1)return t;return t.slice(0,i)+'<em>'+t.slice(i,i+q.length)+'</em>'+t.slice(i+q.length)}
+function doSearch(){const q=document.getElementById('si').value.trim();if(!q)return;sq=q;const a=document.getElementById('ra');a.innerHTML='<div class="spinner"><div class="spin"></div>검색 중...</div>';setTimeout(()=>{const r=DD[ct]||[];sr=r;if(!r.length){a.innerHTML='<div class="empty"><div style="font-size:44px;margin-bottom:12px">😶</div><div>결과를 찾지 못했어요</div></div>';return}const av=['av0','av1','av2','av3'];a.innerHTML='<div class="result-header"><div class="result-count"><strong>'+r.length+'명</strong>의 후보 발견</div></div>'+r.map((p,i)=>`<div class="card" style="animation-delay:${i*.07}s" onclick="openModal(${i})"><div class="av ${av[i%4]}">${p.name.charAt(0)}</div><div style="flex:1;min-width:0"><div class="pname">${hi(p.name,q)}</div><div class="pmeta"><span>${p.info}</span>${p.tags.map(t=>`<span class="mc">${t}</span>`).join('')}</div></div><div class="conf"><div class="cn">${p.c}%</div><div class="cb"><div class="cf" style="width:${p.c}%"></div></div></div></div>`).join('')},700)}
+function openModal(i){const p=sr[i];if(!p)return;const av=['av0','av1','av2','av3'];document.getElementById('mc').innerHTML=`<div class="mav ${av[i%4]}">${p.name.charAt(0)}</div><div class="mname">${p.name}</div><div class="mdesc">${p.info} · 일치도 ${p.c}%</div><div class="mlinks">${ML.map(l=>`<a class="mlink" href="${l.url+(l.url.endsWith('?q=')?encodeURIComponent(sq):'')}" target="_blank" rel="noopener"><span style="font-size:20px;width:26px;text-align:center">${l.icon}</span>${l.label}<span style="margin-left:auto;color:var(--muted)">›</span></a>`).join('')}</div>`;document.getElementById('mo').classList.add('open')}
+function closeModal(){document.getElementById('mo').classList.remove('open')}
+</script>
+</body>
+</html>
